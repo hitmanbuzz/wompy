@@ -1,30 +1,22 @@
-use std::process::exit;
-use crate::server::{IP_ADDR, MAX_SERVER_MEMBER, task::create_task};
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct ServerMember {
-    member_id: usize,
-    // `member_username` will not be use for now
-    member_username: String,
-    member_ip: std::net::IpAddr,
-    /// Store all the msg from the same member
-    member_msg: Vec<String>,
-    is_member_connected: bool,
-}
+use std::{collections::HashMap, process::exit};
+use crate::server::{IP_ADDR, task::create_task};
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct TcpServer {
-    // `id` will not be use for now
-    server_id: usize,
+    pub server_id: usize,
     tcp_listener: tokio::net::TcpListener,
-    /// The server allow only limited members
+    /// Store all members
     ///
-    /// `MAX_SERVER_MEMBER` = Total Numbers of Members allowed
-    server_members: Option<[ServerMember; MAX_SERVER_MEMBER]>,
+    /// Key -> (MemberId, MemberName)
+    members: super::MemberData,
+    /// Store all groups
+    ///
+    /// Key -> (GroupId, GroupName)
+    groups: super::GroupData,
 }
 
+#[allow(dead_code)]
 impl TcpServer {
     /// `ip_addr`: The IP Address where the server will run
     pub async fn create_server(ip_addr: &str) -> Self {
@@ -44,18 +36,42 @@ impl TcpServer {
         Self {
             server_id: 0,
             tcp_listener,
-            server_members: None,
+            members: HashMap::new(),
+            groups: HashMap::new(),
         }
     }
 
     /// Use this after `create_server` function has been created
     pub async fn run_server(&self) -> anyhow::Result<()> {
-        tracing::debug!("server running at: {}", IP_ADDR);
+        tracing::debug!(
+            "[SERVER] IP: {} | ID: {}",
+            IP_ADDR, self.server_id
+        );
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
             tracing::info!("new connection: {}", socket_addr);
             create_task(tcp_stream, socket_addr);
         }
+    }
+
+    pub async fn create_member(&mut self) {
+        
+    }
+
+    pub async fn create_group(&mut self) {
+        
+    }
+
+    pub async fn is_group_exist(&self, group_name: &str) {
+        
+    }
+
+    pub async fn get_total_members(&self) -> usize {
+        self.members.len()
+    }
+
+    pub async fn get_total_groups(&self) -> usize {
+        self.groups.len()
     }
 }
 
