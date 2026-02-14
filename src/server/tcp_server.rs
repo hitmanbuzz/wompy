@@ -1,5 +1,5 @@
 use std::{collections::HashMap, process::exit};
-use crate::server::{IP_ADDR, task::create_task};
+use crate::server::{self, IP_ADDR, task::create_task};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -8,11 +8,11 @@ pub struct TcpServer {
     tcp_listener: tokio::net::TcpListener,
     /// Store all members
     ///
-    /// Key -> (MemberId, MemberName)
+    /// Key -> MemberName (String)
     members: super::MemberData,
     /// Store all groups
     ///
-    /// Key -> (GroupId, GroupName)
+    /// Key -> GroupName (String)
     groups: super::GroupData,
 }
 
@@ -23,11 +23,11 @@ impl TcpServer {
         let tcp_listener = tokio::net::TcpListener::bind(ip_addr).await.unwrap_or_else(|e| {
             match e.kind() {
                 tokio::io::ErrorKind::AddrInUse => {
-                    tracing::error!("ip: {} already used", IP_ADDR);
+                    tracing::error!("ip: {} already used", ip_addr);
                     exit(69);
                 },
                 _ => {
-                    tracing::error!("failed to bind ip: {}", IP_ADDR);
+                    tracing::error!("failed to bind ip: {}", ip_addr);
                     exit(67);
                 },
             }
@@ -58,12 +58,15 @@ impl TcpServer {
         
     }
 
-    pub async fn create_group(&mut self) {
-        
+    pub async fn create_group(&mut self, group_name: &str) {
+        match server::Group::create_group(group_name, &mut self.groups) {
+            true => tracing::debug!("group with name `{}` has been created", group_name),
+            false => tracing::warn!("group with `{}` already exist, cannot create another", group_name),
+        }
     }
 
-    pub async fn is_group_exist(&self, group_name: &str) {
-        
+    pub async fn is_group_exist(&self, group_name: &str) -> bool {
+        return server::Group::is_group_exist(group_name, &self.groups);
     }
 
     pub async fn get_total_members(&self) -> usize {

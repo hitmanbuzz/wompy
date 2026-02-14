@@ -14,8 +14,8 @@ pub(in crate::server) const MAX_MSG_LEN: usize = 255;
 /// The max members allow in a group
 pub(in crate::server) const MAX_GROUP_MEMBER: usize = 50;
 
-pub(in crate::server) type MemberName = &'static str;
-pub(in crate::server) type GroupName = &'static str;
+pub(in crate::server) type MemberName = String;
+pub(in crate::server) type GroupName = String;
 
 pub(in crate::server) type GroupData = HashMap<GroupName, Group>;
 pub(in crate::server) type MemberData = HashMap<MemberName, Member>;
