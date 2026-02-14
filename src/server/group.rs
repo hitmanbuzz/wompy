@@ -15,7 +15,7 @@ pub struct Group {
 
 impl Group {
     /// If return is `true` then the group is created successfully
-    pub(in crate::server) fn create_group(group_name: &str, m_groups: &mut server::GroupData) -> bool {
+    pub(in crate::server) async fn create_group(group_name: &str, m_groups: &mut server::GroupData) -> bool {
         match m_groups.contains_key(group_name) {
             true => {
                 return false;
@@ -39,7 +39,7 @@ impl Group {
     /// `m_member`: The member that will join the group `group_name`
     ///
     /// `m_groups`: All groups are stored here
-    pub(in crate::server) fn join_group(group_name: &str, m_member: &Member, m_groups: &mut server::GroupData) -> bool {
+    pub(in crate::server) async fn join_group(group_name: &str, m_member: &Member, m_groups: &mut server::GroupData) -> bool {
         if m_member.is_group_member {
             if let Some(ref m_group_name) = m_member.group_name {
                 if group_name == m_group_name {
@@ -53,7 +53,7 @@ impl Group {
             }
         }
 
-        match Group::is_group_exist(group_name, m_groups) {
+        match Group::is_group_exist(group_name, m_groups).await {
             true => {
                 let m_group = m_groups.get(group_name).unwrap();
                 if m_group.total_members + 1 > server::MAX_GROUP_MEMBER {
@@ -65,8 +65,13 @@ impl Group {
                 m_groups.get_mut(group_name)
                     .unwrap()
                     .members
-                    .insert(m_member.username.to_string(), m_member.clone())
+                    .insert(m_member.username.clone(), m_member.clone())
                     .unwrap();
+
+                // increment members count after joining the group
+                m_groups.get_mut(group_name)
+                    .unwrap()
+                    .total_members += 1;
 
                 tracing::debug!("`{}` joined group `{}`", m_member.username, group_name);
                 return true;
@@ -79,10 +84,23 @@ impl Group {
     }
 
     /// `true` = group exist
-    pub(in crate::server) fn is_group_exist(group_name: &str, m_groups: &server::GroupData) -> bool {
+    pub(in crate::server) async fn is_group_exist(group_name: &str, m_groups: &server::GroupData) -> bool {
         match m_groups.contains_key(group_name) {
             true => return true,
             false => return false,
         }
+    }
+
+    /// Check if a user is in a specific group
+    pub(in crate::server) async fn is_user_in_group(member_name: &str, group_name: &str, m_groups: &server::GroupData) -> bool {
+        if Group::is_group_exist(group_name, m_groups).await {
+            let g = m_groups.get(group_name).unwrap();
+            match g.members.contains_key(member_name) {
+                true => return true,
+                false => return false,
+            }
+        }
+
+        return false;
     }
 }

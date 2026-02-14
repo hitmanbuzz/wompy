@@ -5,6 +5,8 @@ use crate::server::{self, IP_ADDR, task::create_task};
 #[derive(Debug)]
 pub struct TcpServer {
     pub server_id: usize,
+    /// The Local IP Address where the server is running
+    server_ip: String,
     tcp_listener: tokio::net::TcpListener,
     /// Store all members
     ///
@@ -35,6 +37,7 @@ impl TcpServer {
 
         Self {
             server_id: 0,
+            server_ip: ip_addr.to_string(),
             tcp_listener,
             members: HashMap::new(),
             groups: HashMap::new(),
@@ -45,7 +48,7 @@ impl TcpServer {
     pub async fn run_server(&self) -> anyhow::Result<()> {
         tracing::debug!(
             "[SERVER] IP: {} | ID: {}",
-            IP_ADDR, self.server_id
+            self.server_ip, self.server_id
         );
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
@@ -54,19 +57,19 @@ impl TcpServer {
         }
     }
 
-    pub async fn create_member(&mut self) {
-        
+    pub async fn create_member(&mut self, member_name: &str) {
+        // match server::Member::create_member(member_name, member_ip, m_members)
     }
 
     pub async fn create_group(&mut self, group_name: &str) {
-        match server::Group::create_group(group_name, &mut self.groups) {
+        match server::Group::create_group(group_name, &mut self.groups).await {
             true => tracing::debug!("group with name `{}` has been created", group_name),
             false => tracing::warn!("group with `{}` already exist, cannot create another", group_name),
         }
     }
 
     pub async fn is_group_exist(&self, group_name: &str) -> bool {
-        return server::Group::is_group_exist(group_name, &self.groups);
+        return server::Group::is_group_exist(group_name, &self.groups).await;
     }
 
     pub async fn get_total_members(&self) -> usize {
