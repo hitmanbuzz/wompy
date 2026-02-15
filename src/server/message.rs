@@ -1,48 +1,48 @@
-use crate::server::{self, GroupName, MAX_MSG_LEN, MemberName};
+use crate::server::{self, GroupName, MAX_MSG_LEN, UserName};
 
-pub struct MemberMessage {
-    member_name: MemberName,
-    member_msg: Vec<String>,
+pub struct UserMessage {
+    user_name: UserName,
+    user_msg: Vec<String>,
 }
 
 pub struct Message {
     group_name: GroupName,
-    group_msg: Vec<MemberMessage>,
+    group_msg: Vec<UserMessage>,
 }
 
 impl Message {
-    pub async fn send_msg(msg_data: &str, n_member: &super::Member, m_groups: &mut super::GroupData, m_members: &mut super::MemberData) -> bool {
-        let member_name = n_member.username.as_str();
-        if !server::Member::is_member_exist(member_name, m_members).await {
-            tracing::error!("Member `{}` doesn't exist", member_name);
+    pub async fn send_msg(msg_data: &str, n_user: &super::User, m_groups: &mut super::GroupData, m_users: &mut super::UserData) -> bool {
+        let user_name = n_user.username.as_str();
+        if !server::User::is_user_exist(user_name, m_users).await {
+            tracing::error!("User `{}` doesn't exist", user_name);
             return false;
         }
         
-        if !n_member.is_group_member {
-            tracing::error!("Member `{} is not a group member`", member_name);
+        if !n_user.is_group_user {
+            tracing::error!("User `{} is not a group user`", user_name);
             return false;
         }
 
-        if !n_member.is_connected {
-            tracing::error!("Member `{}` is offline", member_name);
+        if !n_user.is_connected {
+            tracing::error!("User `{}` is offline", user_name);
             return false;
         }
 
-        match server::Group::is_user_in_group(member_name, n_member.group_name.clone().unwrap().as_str(), &m_groups).await {
+        match server::Group::is_user_in_group(user_name, n_user.group_name.clone().unwrap().as_str(), &m_groups).await {
             true => {
-                // Update on the member side
-                m_members
-                    .get_mut(member_name)
+                // Update on the user side
+                m_users
+                    .get_mut(user_name)
                     .unwrap()
                     .msg
                     .push(msg_data.to_string());
 
                 // Update on the group side
                 m_groups
-                    .get_mut(n_member.group_name.clone().unwrap().as_str())
+                    .get_mut(n_user.group_name.clone().unwrap().as_str())
                     .unwrap()
-                    .members
-                    .get_mut(member_name)
+                    .users
+                    .get_mut(user_name)
                     .unwrap()
                     .msg
                     .push(msg_data.to_string());
@@ -50,7 +50,7 @@ impl Message {
                 return true;
             },
             false => {
-                tracing::error!("Member `{}` is not in group `{}`", member_name, &n_member.group_name.clone().unwrap());
+                tracing::error!("User `{}` is not in group `{}`", user_name, &n_user.group_name.clone().unwrap());
                 return false;
             },
         }

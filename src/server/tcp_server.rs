@@ -1,5 +1,5 @@
 use std::{collections::HashMap, process::exit};
-use crate::server::{self, IP_ADDR, task::create_task};
+use crate::server::{self, task::create_task};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -8,10 +8,10 @@ pub struct TcpServer {
     /// The Local IP Address where the server is running
     server_ip: String,
     tcp_listener: tokio::net::TcpListener,
-    /// Store all members
+    /// Store all users
     ///
-    /// Key -> MemberName (String)
-    members: super::MemberData,
+    /// Key -> UserName (String)
+    users: super::UserData,
     /// Store all groups
     ///
     /// Key -> GroupName (String)
@@ -39,7 +39,7 @@ impl TcpServer {
             server_id: 0,
             server_ip: ip_addr.to_string(),
             tcp_listener,
-            members: HashMap::new(),
+            users: HashMap::new(),
             groups: HashMap::new(),
         }
     }
@@ -57,8 +57,8 @@ impl TcpServer {
         }
     }
 
-    pub async fn create_member(&mut self, member_name: &str) {
-        // match server::Member::create_member(member_name, member_ip, m_members)
+    pub async fn create_user(&mut self, user_name: &str) {
+        todo!()
     }
 
     pub async fn create_group(&mut self, group_name: &str) {
@@ -72,8 +72,8 @@ impl TcpServer {
         return server::Group::is_group_exist(group_name, &self.groups).await;
     }
 
-    pub async fn get_total_members(&self) -> usize {
-        self.members.len()
+    pub async fn get_total_users(&self) -> usize {
+        self.users.len()
     }
 
     pub async fn get_total_groups(&self) -> usize {

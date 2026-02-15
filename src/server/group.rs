@@ -1,16 +1,15 @@
 use std::collections::HashMap;
-
-use crate::server::{self, GroupName, MemberData, member::Member};
+use crate::server::{self, GroupName, UserData, User};
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Group {
     /// group name
     pub name: GroupName,  
-    /// total members in the group
-    pub(in crate::server) total_members: usize,
-    /// Store all the members
-    pub(in crate::server) members: MemberData,   
+    /// total users in the group
+    pub(in crate::server) total_users: usize,
+    /// Store all the users
+    pub(in crate::server) users: UserData,   
 }
 
 impl Group {
@@ -23,8 +22,8 @@ impl Group {
             false => {
                 let group_data = Group {
                      name: group_name.to_string(),
-                     total_members: 0,
-                     members: HashMap::new(),       
+                     total_users: 0,
+                     users: HashMap::new(),       
                 };
                 m_groups.insert(group_name.to_string(), group_data);
                 return true;                
@@ -32,22 +31,22 @@ impl Group {
         }
     }
     
-    /// If return is `true` then the member sucessfully join the group
+    /// If return is `true` then the user sucessfully join the group
     ///
     /// `group_name`: The group to join
     ///
-    /// `m_member`: The member that will join the group `group_name`
+    /// `m_user`: The user that will join the group `group_name`
     ///
     /// `m_groups`: All groups are stored here
-    pub(in crate::server) async fn join_group(group_name: &str, m_member: &Member, m_groups: &mut server::GroupData) -> bool {
-        if m_member.is_group_member {
-            if let Some(ref m_group_name) = m_member.group_name {
+    pub(in crate::server) async fn join_group(group_name: &str, m_user: &User, m_groups: &mut server::GroupData) -> bool {
+        if m_user.is_group_user {
+            if let Some(ref m_group_name) = m_user.group_name {
                 if group_name == m_group_name {
-                    tracing::debug!("`{}` is already part of the group `{}`", &m_member.username, &group_name);
+                    tracing::debug!("`{}` is already part of the group `{}`", &m_user.username, &group_name);
                     return false;
                 } 
                 else {
-                    tracing::debug!("`{}` can't join because he/she is part of another group `{}`", &m_member.username, &group_name);
+                    tracing::debug!("`{}` can't join because he/she is part of another group `{}`", &m_user.username, &group_name);
                     return false;
                 }
             }
@@ -56,24 +55,24 @@ impl Group {
         match Group::is_group_exist(group_name, m_groups).await {
             true => {
                 let m_group = m_groups.get(group_name).unwrap();
-                if m_group.total_members + 1 > server::MAX_GROUP_MEMBER {
-                    tracing::error!("`{}` failed to join group `{}` due to max group members reached", m_member.username, group_name);
+                if m_group.total_users + 1 > server::MAX_GROUP_USER {
+                    tracing::error!("`{}` failed to join group `{}` due to max group users reached", m_user.username, group_name);
                     return false;
                 }
 
-                // Add the member to the group
+                // Add the user to the group
                 m_groups.get_mut(group_name)
                     .unwrap()
-                    .members
-                    .insert(m_member.username.clone(), m_member.clone())
+                    .users
+                    .insert(m_user.username.clone(), m_user.clone())
                     .unwrap();
 
-                // increment members count after joining the group
+                // increment users count after joining the group
                 m_groups.get_mut(group_name)
                     .unwrap()
-                    .total_members += 1;
+                    .total_users += 1;
 
-                tracing::debug!("`{}` joined group `{}`", m_member.username, group_name);
+                tracing::debug!("`{}` joined group `{}`", m_user.username, group_name);
                 return true;
             },
             false => {
@@ -92,10 +91,10 @@ impl Group {
     }
 
     /// Check if a user is in a specific group
-    pub(in crate::server) async fn is_user_in_group(member_name: &str, group_name: &str, m_groups: &server::GroupData) -> bool {
+    pub(in crate::server) async fn is_user_in_group(user_name: &str, group_name: &str, m_groups: &server::GroupData) -> bool {
         if Group::is_group_exist(group_name, m_groups).await {
             let g = m_groups.get(group_name).unwrap();
-            match g.members.contains_key(member_name) {
+            match g.users.contains_key(user_name) {
                 true => return true,
                 false => return false,
             }
