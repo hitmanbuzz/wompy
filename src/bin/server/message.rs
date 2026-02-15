@@ -1,4 +1,6 @@
-use crate::server::{self, GroupName, MAX_MSG_LEN, UserName};
+use crate::utils::{MAX_MSG_LEN, UserName, GroupName, UserData, GroupData};
+use crate::user::User;
+use crate::group::Group;
 
 pub struct UserMessage {
     user_name: UserName,
@@ -11,9 +13,9 @@ pub struct Message {
 }
 
 impl Message {
-    pub async fn send_msg(msg_data: &str, n_user: &super::User, m_groups: &mut super::GroupData, m_users: &mut super::UserData) -> bool {
+    pub async fn send_msg(msg_data: &str, n_user: &User, m_groups: &mut GroupData, m_users: &mut UserData) -> bool {
         let user_name = n_user.username.as_str();
-        if !server::User::is_user_exist(user_name, m_users).await {
+        if !User::is_user_exist(user_name, m_users).await {
             tracing::error!("User `{}` doesn't exist", user_name);
             return false;
         }
@@ -28,7 +30,7 @@ impl Message {
             return false;
         }
 
-        match server::Group::is_user_in_group(user_name, n_user.group_name.clone().unwrap().as_str(), &m_groups).await {
+        match Group::is_user_in_group(user_name, n_user.group_name.clone().unwrap().as_str(), &m_groups).await {
             true => {
                 // Update on the user side
                 m_users

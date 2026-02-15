@@ -1,7 +1,14 @@
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-mod server;
+use crate::{tcp_server::TcpServer, utils::IP_ADDR};
+
+mod tcp_server;
+mod task;
+mod message;
+mod group;
+mod user;
+mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -12,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::subscriber::set_global_default(subscriber)
         .expect("setting default subscriber failed");
     
-    let server = server::tcp_server::TcpServer::create_server(server::IP_ADDR).await;
+    let server = TcpServer::create_server(IP_ADDR).await;
     match server.run_server().await {
          Ok(_) => {},
          Err(e) => tracing::error!("failed to run server: {}", e),       

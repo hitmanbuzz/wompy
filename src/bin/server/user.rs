@@ -1,24 +1,24 @@
-use crate::server::{GroupName, UserName};
+use crate::utils::{GroupName, UserName, UserData};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct User {
     /// user username (String)
-    pub(in crate::server) username: UserName,
+    pub username: UserName,
     /// user ip
-    pub(in crate::server) ip: std::net::IpAddr,
+    pub ip: std::net::IpAddr,
     /// store all the msg for the user
-    pub(in crate::server) msg: Vec<String>,
+    pub msg: Vec<String>,
     /// is user connected to the server (online/offline) 
-    pub(in crate::server) is_connected: bool,
+    pub is_connected: bool,
     /// is the user part of a group
-    pub(in crate::server) is_group_user: bool,
+    pub is_group_user: bool,
     /// use if `is_group_user` = true
-    pub(in crate::server) group_name: Option<GroupName>,
+    pub group_name: Option<GroupName>,
 }
 
 impl User {
-    pub async fn create_user(user_name: &str, user_ip: std::net::IpAddr, m_users: &mut super::UserData) -> bool {
+    pub async fn create_user(user_name: &str, user_ip: std::net::IpAddr, m_users: &mut UserData) -> bool {
         if User::is_user_exist(user_name, m_users).await {
             return false;
         }
@@ -37,7 +37,7 @@ impl User {
     } 
 
     /// `true` = user exist in the server data
-    pub async fn is_user_exist(user_name: &str, m_users: &super::UserData) -> bool {
+    pub async fn is_user_exist(user_name: &str, m_users: &UserData) -> bool {
         match m_users.contains_key(user_name) {
             true => return true,
             false => return false,

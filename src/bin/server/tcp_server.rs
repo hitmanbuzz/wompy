@@ -1,5 +1,5 @@
 use std::{collections::HashMap, process::exit};
-use crate::server::{self, task::create_task};
+use crate::{group::Group, task::create_task, utils::{GroupData, UserData}};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -11,11 +11,11 @@ pub struct TcpServer {
     /// Store all users
     ///
     /// Key -> UserName (String)
-    users: super::UserData,
+    users: UserData,
     /// Store all groups
     ///
     /// Key -> GroupName (String)
-    groups: super::GroupData,
+    groups: GroupData,
 }
 
 #[allow(dead_code)]
@@ -62,14 +62,14 @@ impl TcpServer {
     }
 
     pub async fn create_group(&mut self, group_name: &str) {
-        match server::Group::create_group(group_name, &mut self.groups).await {
+        match Group::create_group(group_name, &mut self.groups).await {
             true => tracing::debug!("group with name `{}` has been created", group_name),
             false => tracing::warn!("group with `{}` already exist, cannot create another", group_name),
         }
     }
 
     pub async fn is_group_exist(&self, group_name: &str) -> bool {
-        return server::Group::is_group_exist(group_name, &self.groups).await;
+        return Group::is_group_exist(group_name, &self.groups).await;
     }
 
     pub async fn get_total_users(&self) -> usize {

@@ -1,5 +1,5 @@
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
-use crate::server::message::handle_msg_data;
+use crate::message::handle_msg_data;
 
 pub fn create_task(tcp_stream: tokio::net::TcpStream, socket_addr: std::net::SocketAddr) {
     tokio::spawn(async move {
