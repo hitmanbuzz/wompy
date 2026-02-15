@@ -17,6 +17,7 @@ pub struct User {
     pub group_name: Option<GroupName>,
 }
 
+#[allow(dead_code)]
 impl User {
     pub async fn create_user(user_name: &str, user_ip: std::net::IpAddr, m_users: &mut UserData) -> bool {
         if User::is_user_exist(user_name, m_users).await {

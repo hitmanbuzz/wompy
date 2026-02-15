@@ -13,6 +13,7 @@ pub struct Group {
     pub users: UserData,   
 }
 
+#[allow(dead_code)]
 impl Group {
     /// If return is `true` then the group is created successfully
     pub async fn create_group(group_name: &str, m_groups: &mut GroupData) -> bool {

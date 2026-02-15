@@ -2,16 +2,19 @@ use crate::utils::{MAX_MSG_LEN, UserName, GroupName, UserData, GroupData};
 use crate::user::User;
 use crate::group::Group;
 
+#[allow(dead_code)]
 pub struct UserMessage {
     user_name: UserName,
     user_msg: Vec<String>,
 }
 
+#[allow(dead_code)]
 pub struct Message {
     group_name: GroupName,
     group_msg: Vec<UserMessage>,
 }
 
+#[allow(dead_code)]
 impl Message {
     pub async fn send_msg(msg_data: &str, n_user: &User, m_groups: &mut GroupData, m_users: &mut UserData) -> bool {
         let user_name = n_user.username.as_str();

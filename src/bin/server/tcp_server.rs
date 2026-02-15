@@ -18,7 +18,7 @@ pub struct TcpServer {
     groups: GroupData,
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, unused_variables)]
 impl TcpServer {
     /// `ip_addr`: The IP Address where the server will run
     pub async fn create_server(ip_addr: &str) -> Self {
