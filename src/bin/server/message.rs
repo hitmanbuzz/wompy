@@ -63,7 +63,7 @@ impl Message {
 }
 
 /// Handle the incoming msg data from the clients
-pub fn handle_msg_data(socket_addr: &std::net::SocketAddr, msg_data: &str) {
+pub fn handle_msg_data(_socket_addr: &std::net::SocketAddr, msg_data: &str, username: &str, _group_name: &str) {
     if msg_data.is_empty() {
         return;
     }
@@ -73,5 +73,5 @@ pub fn handle_msg_data(socket_addr: &std::net::SocketAddr, msg_data: &str) {
         return;
     }
     
-    tracing::debug!("[{}] ≫ {}", socket_addr, msg_data);
+    tracing::info!("[{}] ≫ {}", username, msg_data);
 }

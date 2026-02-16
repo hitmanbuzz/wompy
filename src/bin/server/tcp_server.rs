@@ -52,7 +52,7 @@ impl TcpServer {
         );
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
-            tracing::info!("new connection: {}", socket_addr);
+            tracing::debug!("new connection: {}", socket_addr);
             create_task(tcp_stream, socket_addr);
         }
     }
