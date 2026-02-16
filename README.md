@@ -11,3 +11,5 @@ cargo run --bin server
 ```
 cargo run --bin client
 ```
+
+- Made by `Moirangthem Henthoiba` (hitmanbuzz)
