@@ -5,28 +5,16 @@ pub fn create_task(tcp_stream: tokio::net::TcpStream, socket_addr: std::net::Soc
     tokio::spawn(async move {
         let (reader, _) = tcp_stream.into_split();
         let mut username = String::new();
-        let mut group_name = String::new();
         let mut msg = String::new();
         let mut reader = tokio::io::BufReader::new(reader);
+        username.clear();
 
-        // Send the initial needed message back to client before chatting start
-        while username.len() == 0 || group_name.len() == 0 {
+        while username.len() == 0 {
             // Receive username from client
             match reader.read_line(&mut username).await {
                 Ok(0) => {
-                    tracing::debug!("client disconnected: {}", socket_addr);
-                }
-                Ok(_) => {}
-                Err(e) => {
-                    tracing::error!("error reading from socket: {}", e);
+                    tracing::debug!("[{}] disconnected", username);
                     break;
-                }
-            }
-
-            // Receive group name from client
-            match reader.read_line(&mut group_name).await {
-                Ok(0) => {
-                    tracing::debug!("client disconnected: {}", socket_addr);
                 }
                 Ok(_) => {}
                 Err(e) => {
@@ -36,13 +24,14 @@ pub fn create_task(tcp_stream: tokio::net::TcpStream, socket_addr: std::net::Soc
             }
         }
 
-        // Only allow receiving from client if the client has username and group name
-        while username.len() > 0 && group_name.len() > 0 {
+        tracing::debug!("[{}] just joined!!!", username.trim());
+
+        while username.len() > 0 {
             msg.clear();
 
             match reader.read_line(&mut msg).await {
                 Ok(0) => {
-                    tracing::debug!("client disconnected: {}", socket_addr);
+                    tracing::debug!("[{}] disconnected", username);
                     break;
                 },
                 Ok(_) => {
@@ -50,7 +39,6 @@ pub fn create_task(tcp_stream: tokio::net::TcpStream, socket_addr: std::net::Soc
                         &socket_addr,
                         &msg.trim(),
                         &username.trim(),
-                        &group_name.trim(),
                     );
                 },
                 Err(e) => {

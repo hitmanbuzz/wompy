@@ -4,7 +4,6 @@ use crate::{group::Group, task::create_task, utils::{GroupData, UserData}};
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct TcpServer {
-    pub server_id: usize,
     /// The Local IP Address where the server is running
     server_ip: String,
     tcp_listener: tokio::net::TcpListener,
@@ -36,7 +35,6 @@ impl TcpServer {
         });
 
         Self {
-            server_id: 0,
             server_ip: ip_addr.to_string(),
             tcp_listener,
             users: HashMap::new(),
@@ -46,13 +44,9 @@ impl TcpServer {
 
     /// Use this after `create_server` function has been created
     pub async fn run_server(&self) -> anyhow::Result<()> {
-        tracing::debug!(
-            "[SERVER] IP: {} | ID: {}",
-            self.server_ip, self.server_id
-        );
+        tracing::debug!("[SERVER] IP: {}", self.server_ip);
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
-            tracing::debug!("new connection: {}", socket_addr);
             create_task(tcp_stream, socket_addr);
         }
     }

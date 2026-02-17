@@ -18,6 +18,8 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::subscriber::set_global_default(subscriber)
         .expect("setting default subscriber failed");
+
+    eprint!("\x1B[2J\x1B[1;1H");
     
     let server = TcpServer::create_server(IP_ADDR).await;
     match server.run_server().await {

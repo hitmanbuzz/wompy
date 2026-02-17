@@ -63,7 +63,7 @@ impl Message {
 }
 
 /// Handle the incoming msg data from the clients
-pub fn handle_msg_data(_socket_addr: &std::net::SocketAddr, msg_data: &str, username: &str, _group_name: &str) {
+pub fn handle_msg_data(_socket_addr: &std::net::SocketAddr, msg_data: &str, username: &str) {
     if msg_data.is_empty() {
         return;
     }
