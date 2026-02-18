@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.101"
+eframe = "0.33.3"
 tokio = { version = "1.49.0", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = "0.3.0"
