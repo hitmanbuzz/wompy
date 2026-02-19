@@ -1,4 +1,6 @@
-use std::{collections::HashMap, process::exit};
+use std::{collections::HashMap, process::exit, sync::Arc};
+use tokio::sync::Mutex;
+
 use crate::{group::Group, task::create_task, utils::{GroupData, UserData}};
 
 #[allow(dead_code)]
@@ -10,11 +12,11 @@ pub struct TcpServer {
     /// Store all users
     ///
     /// Key -> UserName (String)
-    users: UserData,
+    pub users: Arc<Mutex<UserData>>,
     /// Store all groups
     ///
     /// Key -> GroupName (String)
-    groups: GroupData,
+    pub groups: Arc<Mutex<GroupData>>,
 }
 
 #[allow(dead_code, unused_variables)]
@@ -37,41 +39,46 @@ impl TcpServer {
         Self {
             server_ip: ip_addr.to_string(),
             tcp_listener,
-            users: HashMap::new(),
-            groups: HashMap::new(),
+            users: Arc::new(Mutex::new(HashMap::new())),
+            groups: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
     /// Use this after `create_server` function has been created
-    pub async fn run_server(&self) -> anyhow::Result<()> {
+    pub async fn run_server(&mut self) -> anyhow::Result<()> {
         tracing::debug!("[SERVER] IP: {}", self.server_ip);
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
-            create_task(tcp_stream, socket_addr);
+            create_task(
+                tcp_stream,
+                socket_addr,
+                Arc::clone(&self.users),
+                Arc::clone(&self.groups)
+            );
         }
     }
 
-    pub async fn create_user(&mut self, user_name: &str) {
-        todo!()
-    }
-
     pub async fn create_group(&mut self, group_name: &str) {
-        match Group::create_group(group_name, &mut self.groups).await {
+        let mut groups = self.groups.lock().await;
+        match Group::create_group(group_name, &mut groups).await {
             true => tracing::debug!("group with name `{}` has been created", group_name),
             false => tracing::warn!("group with `{}` already exist, cannot create another", group_name),
         }
     }
 
     pub async fn is_group_exist(&self, group_name: &str) -> bool {
-        return Group::is_group_exist(group_name, &self.groups).await;
+        let groups = self.groups.lock().await;
+        return Group::is_group_exist(group_name, &groups).await;
     }
 
     pub async fn get_total_users(&self) -> usize {
-        self.users.len()
+        let users = self.users.lock().await;
+        return users.len();
     }
 
     pub async fn get_total_groups(&self) -> usize {
-        self.groups.len()
+        let groups = self.groups.lock().await;
+        return groups.len();
     }
 }
 

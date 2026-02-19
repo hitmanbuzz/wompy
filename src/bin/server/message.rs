@@ -1,4 +1,4 @@
-use crate::utils::{MAX_MSG_LEN, UserName, GroupName, UserData, GroupData};
+use crate::utils::{UserName, GroupName, UserData, GroupData};
 use crate::user::User;
 use crate::group::Group;
 
@@ -62,16 +62,3 @@ impl Message {
     }
 }
 
-/// Handle the incoming msg data from the clients
-pub fn handle_msg_data(_socket_addr: &std::net::SocketAddr, msg_data: &str, username: &str) {
-    if msg_data.is_empty() {
-        return;
-    }
-
-    if msg_data.len() > MAX_MSG_LEN {
-        tracing::error!("message length is above max value: {}", msg_data.len());
-        return;
-    }
-    
-    tracing::info!("[{}] ≫ {}", username, msg_data);
-}

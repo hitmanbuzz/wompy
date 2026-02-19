@@ -127,8 +127,26 @@ async fn main() -> anyhow::Result<()> {
             .exact_width(150.0)
             .resizable(false)
             .show(ui, |lui| {
-                lui.label("Left Panel");
-        });
+                lui.add_sized(
+                    [lui.available_width(), 20.0],
+                    egui::Label::new(
+                        egui::RichText::new("USERS")
+                            .strong()
+                            .underline()
+                            .size(24.0)
+                    )
+                );
+
+                // put all the users in this section
+                egui::ScrollArea::vertical().show(lui, |sui| {
+                    sui.with_layout(
+                        egui::Layout::top_down_justified(egui::Align::Center), |lsui| {
+                            // TODO
+                        }
+                    )
+                });
+            }
+        );
 
         // this is where user message field box and send button is placed
         egui::TopBottomPanel::bottom("bottom_panel")
@@ -163,6 +181,7 @@ async fn main() -> anyhow::Result<()> {
                     // send the chat msg to the server group
                     if send_msg_btn.clicked() && !usr_msg_field.is_empty() {
                         usr_msgs.push(usr_msg_field.clone());
+                        usr_msg_field.clear();
                     }
                 });
             }

@@ -6,7 +6,7 @@ pub struct User {
     /// user username (String)
     pub username: UserName,
     /// user ip
-    pub ip: std::net::IpAddr,
+    pub ip: std::net::SocketAddr,
     /// store all the msg for the user
     pub msg: Vec<String>,
     /// is user connected to the server (online/offline) 
@@ -19,24 +19,6 @@ pub struct User {
 
 #[allow(dead_code)]
 impl User {
-    pub async fn create_user(user_name: &str, user_ip: std::net::IpAddr, m_users: &mut UserData) -> bool {
-        if User::is_user_exist(user_name, m_users).await {
-            return false;
-        }
-
-        let m = User {
-            username: user_name.to_string(),
-            ip: user_ip,
-            msg: Vec::new(),
-            is_connected: true,
-            is_group_user: false,
-            group_name: None,
-        };
-
-        m_users.insert(user_name.to_string(), m).unwrap();
-        return true;
-    } 
-
     /// `true` = user exist in the server data
     pub async fn is_user_exist(user_name: &str, m_users: &UserData) -> bool {
         match m_users.contains_key(user_name) {
@@ -44,4 +26,13 @@ impl User {
             false => return false,
         }
     }
+}
+
+/// Handle the incoming user data from the client
+pub async fn handle_user(user: &User, curr_msg: &str) {
+    if user.msg.is_empty() {
+        return;
+    }
+    
+    tracing::info!("user: {} | group: {} | msg: {}", user.username, user.group_name.as_ref().unwrap(), curr_msg);
 }

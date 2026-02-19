@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
 
     eprint!("\x1B[2J\x1B[1;1H");
     
-    let server = TcpServer::create_server(IP_ADDR).await;
+    let mut server = TcpServer::create_server(IP_ADDR).await;
     match server.run_server().await {
          Ok(_) => {},
          Err(e) => tracing::error!("failed to run server: {}", e),       

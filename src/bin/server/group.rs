@@ -40,25 +40,27 @@ impl Group {
     /// `m_user`: The user that will join the group `group_name`
     ///
     /// `m_groups`: All groups are stored here
-    pub async fn join_group(group_name: &str, m_user: &User, m_groups: &mut GroupData) -> bool {
-        if m_user.is_group_user {
-            if let Some(ref m_group_name) = m_user.group_name {
-                if group_name == m_group_name {
-                    tracing::debug!("`{}` is already part of the group `{}`", &m_user.username, &group_name);
-                    return false;
-                } 
-                else {
-                    tracing::debug!("`{}` can't join because he/she is part of another group `{}`", &m_user.username, &group_name);
-                    return false;
-                }
-            }
-        }
+    pub async fn join_group(m_user: &User, m_groups: &mut GroupData) -> bool {
+        let group_name = m_user.group_name.as_ref().unwrap().as_str();
+        let username = m_user.username.as_str();
+
+        // TODO: Implement user to leave a group
+        // if m_user.is_group_user {
+        //     if Group::is_user_in_group(&m_user.username, group_name.as_str(), m_groups).await {
+        //         tracing::debug!("`{}` is already part of the group `{}`", &m_user.username, group_name.as_str());
+        //         return false;
+        //     } 
+        //     else {
+        //         tracing::debug!("`{}` can't join because he/she is part of another group `{}`", &m_user.username, group_name.as_str());
+        //         return false;
+        //     }
+        // }
 
         match Group::is_group_exist(group_name, m_groups).await {
             true => {
                 let m_group = m_groups.get(group_name).unwrap();
                 if m_group.total_users + 1 > MAX_GROUP_USER {
-                    tracing::error!("`{}` failed to join group `{}` due to max group users reached", m_user.username, group_name);
+                    tracing::error!("`{}` failed to join group `{}` due to max group users reached", username, group_name);
                     return false;
                 }
 
@@ -66,7 +68,7 @@ impl Group {
                 m_groups.get_mut(group_name)
                     .unwrap()
                     .users
-                    .insert(m_user.username.clone(), m_user.clone())
+                    .insert(username.to_string(), m_user.clone())
                     .unwrap();
 
                 // increment users count after joining the group
@@ -74,7 +76,7 @@ impl Group {
                     .unwrap()
                     .total_users += 1;
 
-                tracing::debug!("`{}` joined group `{}`", m_user.username, group_name);
+                tracing::debug!("`{}` joined group `{}`", username, group_name);
                 return true;
             },
             false => {
