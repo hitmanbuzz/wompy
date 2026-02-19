@@ -49,6 +49,7 @@ impl TcpServer {
         tracing::debug!("[SERVER] IP: {}", self.server_ip);
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
+            tracing::debug!("new user connected with ip: {}", socket_addr);
             create_task(
                 tcp_stream,
                 socket_addr,

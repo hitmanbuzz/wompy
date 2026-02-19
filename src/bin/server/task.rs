@@ -27,7 +27,7 @@ pub fn create_task(
             if !good_user {
                 match reader.read_line(&mut username).await {
                     Ok(0) => {
-                        tracing::debug!("[{}] disconnected", username);
+                        tracing::debug!("[{}] disconnected", username.trim());
                         break;
                     }
                     Ok(_) => {
@@ -44,7 +44,7 @@ pub fn create_task(
             if !good_group {
                 match reader.read_line(&mut groupname).await {
                     Ok(0) => {
-                        tracing::debug!("[{}] disconnected", username);
+                        tracing::debug!("[{}] disconnected", username.trim());
                         break;
                     }
                     Ok(_) => {
@@ -65,7 +65,7 @@ pub fn create_task(
 
             match reader.read_line(&mut msg).await {
                 Ok(0) => {
-                    tracing::debug!("[{}] disconnected", username);
+                    tracing::debug!("[{}] disconnected", username.trim());
                     break;
                 },
                 Ok(_) => {
