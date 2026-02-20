@@ -1,7 +1,11 @@
 use std::{collections::HashMap, process::exit, sync::Arc};
 use tokio::sync::Mutex;
 
-use crate::{group::Group, task::create_task, utils::{GroupData, UserData}};
+use crate::{
+    group::Group,
+    task::create_task,
+    utils::{GroupData, UserData},
+};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -23,18 +27,18 @@ pub struct TcpServer {
 impl TcpServer {
     /// `ip_addr`: The IP Address where the server will run
     pub async fn create_server(ip_addr: &str) -> Self {
-        let tcp_listener = tokio::net::TcpListener::bind(ip_addr).await.unwrap_or_else(|e| {
-            match e.kind() {
+        let tcp_listener = tokio::net::TcpListener::bind(ip_addr)
+            .await
+            .unwrap_or_else(|e| match e.kind() {
                 tokio::io::ErrorKind::AddrInUse => {
                     tracing::error!("ip: {} already used", ip_addr);
                     exit(69);
-                },
+                }
                 _ => {
                     tracing::error!("failed to bind ip: {}", ip_addr);
                     exit(67);
-                },
-            }
-        });
+                }
+            });
 
         Self {
             server_ip: ip_addr.to_string(),
@@ -49,12 +53,13 @@ impl TcpServer {
         tracing::debug!("[SERVER] IP: {}", self.server_ip);
         loop {
             let (tcp_stream, socket_addr) = self.tcp_listener.accept().await?;
+            self.create_group("default").await;
             tracing::debug!("new user connected with ip: {}", socket_addr);
             create_task(
                 tcp_stream,
                 socket_addr,
                 Arc::clone(&self.users),
-                Arc::clone(&self.groups)
+                Arc::clone(&self.groups),
             );
         }
     }
@@ -63,8 +68,17 @@ impl TcpServer {
         let mut groups = self.groups.lock().await;
         match Group::create_group(group_name, &mut groups).await {
             true => tracing::debug!("group with name `{}` has been created", group_name),
-            false => tracing::warn!("group with `{}` already exist, cannot create another", group_name),
+            false => tracing::warn!(
+                "group with `{}` already exist, cannot create another",
+                group_name
+            ),
         }
+    }
+
+    pub async fn get_user(&self, username: &str) -> crate::user::User {
+        let users = self.users.lock().await;
+        let r = crate::user::User::get_user(username, &users).await;
+        return r.clone();
     }
 
     pub async fn is_group_exist(&self, group_name: &str) -> bool {
@@ -82,4 +96,3 @@ impl TcpServer {
         return groups.len();
     }
 }
-

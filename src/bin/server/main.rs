@@ -3,10 +3,10 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::{tcp_server::TcpServer, utils::IP_ADDR};
 
-mod tcp_server;
-mod task;
-mod message;
 mod group;
+mod message;
+mod task;
+mod tcp_server;
 mod user;
 mod utils;
 
@@ -16,17 +16,15 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(Level::TRACE)
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     eprint!("\x1B[2J\x1B[1;1H");
-    
+
     let mut server = TcpServer::create_server(IP_ADDR).await;
     match server.run_server().await {
-         Ok(_) => {},
-         Err(e) => tracing::error!("failed to run server: {}", e),       
+        Ok(_) => {}
+        Err(e) => tracing::error!("failed to run server: {}", e),
     }
-    
+
     Ok(())
 }
-

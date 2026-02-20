@@ -3,7 +3,7 @@ use tokio::sync::mpsc;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use crate::init::{connect_server, send_init_data};
+use crate::init::{connect_server, send_chat_msg, send_init_data};
 
 mod init;
 
@@ -126,14 +126,17 @@ impl eframe::App for ChatApp {
                             let result = Some(connect_server(IP_ADDR).await);
                             match result {
                                 Some(mut stream) => {
-                                    let init_success = send_init_data(&username, &groupname, &mut stream).await;
-                                    
+                                    let init_success =
+                                        send_init_data(&username, &groupname, &mut stream).await;
+
                                     if init_success {
                                         let _ = tx.send(Some(stream)).await;
                                     } else {
-                                        tracing::error!("failed to send username and groupname to the server");   
+                                        tracing::error!(
+                                            "failed to send username and groupname to the server"
+                                        );
                                     }
-                                },
+                                }
                                 None => todo!(),
                             }
                             ctx.request_repaint();
@@ -205,9 +208,18 @@ impl eframe::App for ChatApp {
                     );
 
                     // send the chat msg to the server group
-                    if send_msg_btn.clicked() && !self.user_msg.is_empty() {
-                        self.user_all_msg.push(self.user_msg.clone());
+                    if send_msg_btn.clicked() && !self.user_msg.is_empty() && self.stream.is_some()
+                    {
+                        let mut stream = self.stream.take().unwrap();
+                        let user_msg = self.user_msg.clone();
+                        let mut user_all_msg = self.user_all_msg.clone();
+
+                        self.runtime.spawn(async move {
+                            send_chat_msg(&user_msg, &mut user_all_msg, &mut stream).await;
+                        });
+
                         self.user_msg.clear();
+                        ctx.request_repaint();
                     }
                 });
             });

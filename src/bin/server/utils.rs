@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::{group::Group, user::User};
+use std::collections::HashMap;
 
 /// The server local IP Address
 pub const IP_ADDR: &str = "127.0.0.1:4096";

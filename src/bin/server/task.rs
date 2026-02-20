@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::user::handle_user;
+use std::sync::Arc;
 use tokio::io::AsyncBufReadExt;
 use tokio::sync::Mutex;
 
@@ -67,26 +67,32 @@ pub fn create_task(
                 Ok(0) => {
                     tracing::debug!("[{}] disconnected", username.trim());
                     break;
-                },
+                }
                 Ok(_) => {
-                    let mut new_user = crate::user::User {
-                        username: username.clone(),
-                        ip: socket_addr,
-                        msg: Vec::new(),
-                        is_connected: true,
-                        is_group_user: true,
-                        group_name: Some(groupname.clone()),
-                    };
+                    let mut user: crate::user::User;
 
-                    new_user.group_name = Some(groupname.clone());
-                    new_user.msg.push(msg.trim().to_string());
-                    users.insert(new_user.username.clone(), new_user.clone());
-                    handle_user(&new_user, msg.trim()).await;
-                    crate::group::Group::join_group(
-                        &new_user,
-                        &mut groups
-                    ).await;
-                },
+                    if crate::user::User::is_user_exist(&username, &users).await {
+                        let m_user = crate::user::User::get_user(&username, &users).await;
+                        user = m_user.clone();
+                    } else {
+                        user = crate::user::User {
+                            username: username.clone(),
+                            ip: socket_addr,
+                            msg: Vec::new(),
+                            is_connected: true,
+                            is_group_user: true,
+                            group_name: Some(groupname.clone()),
+                        };
+                        user.group_name = Some(groupname.clone());
+                        users.insert(user.username.clone(), user.clone());
+                        crate::group::Group::join_group(&user, &mut groups).await;
+                    }
+
+                    if !msg.is_empty() {
+                        user.msg.push(msg.trim().to_string());
+                        handle_user(&user, msg.trim()).await;
+                    }
+                }
                 Err(e) => {
                     tracing::error!("error reading from socket: {}", e);
                     break;
